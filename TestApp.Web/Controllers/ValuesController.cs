@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TestApp.Data;
+using TestApp.Data.Entities;
 
 namespace TestApp.Web.Controllers
 {
@@ -9,6 +11,13 @@ namespace TestApp.Web.Controllers
     [Authorize]
     public class ValuesController : ControllerBase
     {
+        public ValuesController(TestAppDbContext dbContext)
+        {
+            DbContext = dbContext;
+        }
+        
+        private TestAppDbContext DbContext { get; }
+        
         /// <summary>
         /// Returns foobar.
         /// </summary>

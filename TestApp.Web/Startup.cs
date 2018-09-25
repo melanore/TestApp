@@ -52,6 +52,7 @@ namespace TestApp.Web
                     options.SerializerSettings.Formatting = Formatting.None;
                     options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
                     options.SerializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
+                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                     options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                     options.SerializerSettings.Converters.Add(new IsoDateTimeConverter());
                     options.SerializerSettings.Converters.Add(new StringEnumConverter {CamelCaseText = true});
