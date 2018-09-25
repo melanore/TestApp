@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
+using System.Reflection;
+using Bazinga.AspNetCore.Authentication.Basic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -8,11 +12,16 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using StackExchange.Profiling.Storage;
+using Swashbuckle.AspNetCore.Swagger;
+using TestApp.Core.Configuration;
 using TestApp.Data;
 using TestApp.Web.Filters;
+using TestApp.Web.Security;
 
 namespace TestApp.Web
 {
@@ -47,16 +56,73 @@ namespace TestApp.Web
                     options.SerializerSettings.Converters.Add(new IsoDateTimeConverter());
                     options.SerializerSettings.Converters.Add(new StringEnumConverter {CamelCaseText = true});
                 })
-                .AddControllersAsServices()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            services.Configure<BasicAuthenticationConfiguration>(Configuration.GetSection("BasicAuthenticationConfiguration"));
+            services.AddAuthentication(BasicAuthenticationDefaults.AuthenticationScheme).AddBasicAuthentication<BasicAuthenticationVerifier>();
+            
+            if (Environment.IsDevelopment())
+            {
+                services.AddMiniProfiler(options =>
+                {
+                    // All of this is optional. You can simply call .AddMiniProfiler() for all defaults
+
+                    // (Optional) Path to use for profiler URLs, default is /mini-profiler-resources
+                    options.RouteBasePath = "/profiler";
+
+                    // (Optional) Control storage
+                    // (default is 30 minutes in MemoryCacheStorage)
+                    ((MemoryCacheStorage)options.Storage).CacheDuration = TimeSpan.FromMinutes(60);
+
+                    // (Optional) Control which SQL formatter to use, InlineFormatter is the default
+                    options.SqlFormatter = new StackExchange.Profiling.SqlFormatters.InlineFormatter();
+
+                    // (Optional) You can disable "Connection Open()", "Connection Close()" (and async variant) tracking.
+                    // (defaults to true, and connection opening/closing is tracked)
+                    options.TrackConnectionOpenClose = true;
+                }).AddEntityFramework();
+                
+                services.AddSwaggerGen(c =>
+                {
+                    c.SwaggerDoc("v1", new Info
+                    {
+                        Title = "Test app api explorer", 
+                        Version = "v1",
+                        Description = "A simple ASP.NET Core Web API app",
+                        TermsOfService = "None",
+                        Contact = new Contact
+                        {
+                            Name = "Max Grebeniuk",
+                            Email = "grebreniukmax@gmail.com",
+                            Url = "https://github.com/melanore"
+                        }
+                    });
+                    
+                    c.AddSecurityDefinition("basic", new BasicAuthScheme
+                    {
+                        Type = "basic",
+                        Description = "Some minimal auth for testing purposes"
+                    });
+                    c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
+                    {
+                        { "basic", new string[] { } }
+                    });
+                });
+            }
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            var auth = app.ApplicationServices.GetRequiredService<IOptions<BasicAuthenticationConfiguration>>().Value;
+            if (string.IsNullOrEmpty(auth.Username) || string.IsNullOrEmpty(auth.Password) || string.IsNullOrEmpty(auth.ScopeName))
+                throw new NotSupportedException("Please provide BasicAuthenticationConfiguration in appsettings.");
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                PerformMigrations(app.ApplicationServices);
+                MigrateDatabase(app.ApplicationServices);
+                //https://miniprofiler.com/dotnet/HowTo/ProfileCode
+                app.UseMiniProfiler();
             }
             else
             {
@@ -64,6 +130,13 @@ namespace TestApp.Web
             }
 
             app.UseHttpsRedirection();
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test app api explorer");
+                c.RoutePrefix = string.Empty;
+            });
+            app.UseAuthentication();
             app.UseMvc();
 
             //http://byterot.blogspot.co.uk/2016/07/singleton-httpclient-dns.html
@@ -72,7 +145,7 @@ namespace TestApp.Web
             sp.ConnectionLeaseTimeout = 60 * 1000; // 1 minute
         }
 
-        private static void PerformMigrations(IServiceProvider serviceProvider)
+        private static void MigrateDatabase(IServiceProvider serviceProvider)
         {
             using (var serviceScope = serviceProvider.CreateScope())
             {

@@ -1,13 +1,21 @@
 ﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace TestApp.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ValuesController : ControllerBase
     {
-        // GET api/values
+        /// <summary>
+        /// Returns foobar.
+        /// </summary>
+        /// <remarks>
+        /// Here is a sample remarks placeholder.
+        /// </remarks>
+        /// <returns>foobar</returns>
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
         {
