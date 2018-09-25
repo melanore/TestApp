@@ -1,39 +1,62 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
+using TestApp.Data;
+using TestApp.Web.Filters;
 
 namespace TestApp.Web
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IHostingEnvironment environment)
         {
             Configuration = configuration;
+            Environment = environment;
         }
 
         public IConfiguration Configuration { get; }
+        private IHostingEnvironment Environment { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            var connectionString = Configuration.GetConnectionString("DefaultConnection");
+            services
+                .AddEntityFrameworkSqlServer()
+                .AddDbContext<TestAppDbContext>(options =>
+                    options
+                        .UseSqlServer(connectionString)
+                        // EF core by default evaluates query on server side if it can't on db side, instead of throwing. We want to throw instead of n+1 calls.
+                        .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning)))
+                .AddMvc(options => options.Filters.Add(new ExceptionFilterFactory(Environment)))
+                .AddJsonOptions(options =>
+                {
+                    options.SerializerSettings.Formatting = Formatting.None;
+                    options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
+                    options.SerializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
+                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                    options.SerializerSettings.Converters.Add(new IsoDateTimeConverter());
+                    options.SerializerSettings.Converters.Add(new StringEnumConverter {CamelCaseText = true});
+                })
+                .AddControllersAsServices()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                PerformMigrations(app.ApplicationServices);
             }
             else
             {
@@ -42,6 +65,28 @@ namespace TestApp.Web
 
             app.UseHttpsRedirection();
             app.UseMvc();
+
+            //http://byterot.blogspot.co.uk/2016/07/singleton-httpclient-dns.html
+            // Http client not used, but once it is, - people typically miss this line.
+            var sp = ServicePointManager.FindServicePoint(new Uri("http://foo.bar/baz/123?a=ab"));
+            sp.ConnectionLeaseTimeout = 60 * 1000; // 1 minute
+        }
+
+        private static void PerformMigrations(IServiceProvider serviceProvider)
+        {
+            using (var serviceScope = serviceProvider.CreateScope())
+            {
+                var logger = serviceScope.ServiceProvider.GetService<ILogger<Startup>>();
+                try
+                {
+                    var dbContext = serviceScope.ServiceProvider.GetService<TestAppDbContext>();
+                    dbContext.Database.Migrate();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to migrate database");
+                }
+            }
         }
     }
 }
