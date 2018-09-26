@@ -10,7 +10,7 @@ namespace TestApp.Data.Entities
         public string City { get; set; }
         public string Country { get; set; }
 
-        public string AddressType { get; set; }
+        public string AddressType { get; private set; }
 
         public string CustomerId { get; set; }
         public Customer Customer { get; set; }

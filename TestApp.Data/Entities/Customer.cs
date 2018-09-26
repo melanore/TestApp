@@ -4,7 +4,7 @@ namespace TestApp.Data.Entities
 {
     public class Customer
     {
-        public string Id { get; set; }
+        public string Id { get; private set; }
         
         public string Name { get; set; }
         public string Street { get; set; }
