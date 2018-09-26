@@ -6,7 +6,7 @@ using TestApp.Data.Domain;
 using TestApp.Data.Entities;
 using TestApp.Data.Helpers;
 
-namespace TestApp.Data.Services.Impl
+namespace TestApp.Data.Repositories.Impl
 {
     public class AddressRepository : IAddressRepository
     {

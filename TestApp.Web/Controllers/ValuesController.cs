@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TestApp.Data;
+using TestApp.Data.Entities;
+using TestApp.Data.Repositories;
 
 namespace TestApp.Web.Controllers
 {
@@ -10,12 +13,12 @@ namespace TestApp.Web.Controllers
     [Authorize]
     public class ValuesController : ControllerBase
     {
-        public ValuesController(TestAppDbContext dbContext)
+        public ValuesController(ITestAppUnitOfWork unitOfWork)
         {
-            DbContext = dbContext;
+            UnitOfWork = unitOfWork;
         }
 
-        private TestAppDbContext DbContext { get; }
+        private ITestAppUnitOfWork UnitOfWork { get; }
 
         /// <summary>
         ///     Returns foobar.
@@ -25,9 +28,9 @@ namespace TestApp.Web.Controllers
         /// </remarks>
         /// <returns>foobar</returns>
         [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        public async Task<Customer> Get()
         {
-            return new[] {"value1", "value2"};
+            return await UnitOfWork.CustomerRepository.GetByIdAsync("123");
         }
 
         // GET api/values/5

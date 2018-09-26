@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using TestApp.Core.Helpers;
 using TestApp.Data.Entities;
 
-namespace TestApp.Data.Services
+namespace TestApp.Data.Repositories
 {
     public interface IAddressRepository
     {

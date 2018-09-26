@@ -17,10 +17,19 @@ using Newtonsoft.Json.Serialization;
 using StackExchange.Profiling.SqlFormatters;
 using StackExchange.Profiling.Storage;
 using Swashbuckle.AspNetCore.Swagger;
+using TestApp.Business.Services;
 using TestApp.Core.Configuration;
 using TestApp.Data;
+using TestApp.Data.Repositories;
+using TestApp.Data.Repositories.Impl;
+using TestApp.Data.Services;
 using TestApp.Web.Filters;
 using TestApp.Web.Security;
+
+using AddressDto = TestApp.Business.Domain.Address;
+using AddressEntity = TestApp.Data.Entities.Address;
+using CustomerDto = TestApp.Business.Domain.Customer;
+using CustomerEntity = TestApp.Data.Entities.Customer;
 
 namespace TestApp.Web
 {
@@ -60,6 +69,12 @@ namespace TestApp.Web
 
             services.Configure<BasicAuthenticationConfiguration>(Configuration.GetSection("BasicAuthenticationConfiguration"));
             services.AddAuthentication(BasicAuthenticationDefaults.AuthenticationScheme).AddBasicAuthentication<BasicAuthenticationVerifier>();
+
+            services.AddTransient<IEntityMappingService<AddressDto, AddressEntity>, AddressMappingService>();
+            services.AddTransient<IEntityMappingService<CustomerDto, CustomerEntity>, CustomerMappingService>();
+            services.AddTransient<IAddressRepository, AddressRepository>();
+            services.AddTransient<ICustomerRepository, CustomerRepository>();
+            services.AddTransient<ITestAppUnitOfWork, TestAppUnitOfWork>();
 
             if (Environment.IsDevelopment())
             {
