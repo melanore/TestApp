@@ -9,11 +9,12 @@ namespace TestApp.Core.Helpers
 {
     public class Delta<T> where T : new()
     {
-        private static readonly Dictionary<string, Action<object, object>> TypeSettersTemplate =
+        private static readonly Dictionary<string, Action<object, object>> TypeSettersTemplate = 
             (typeof(T).GetProperties() ?? Enumerable.Empty<PropertyInfo>())
             .ToDictionary<PropertyInfo, string, Action<object, object>>(property => property.Name, property => property.SetValue);
 
-        private readonly Dictionary<string, Action<object, object>> currentTypeSetters = TypeSettersTemplate.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        private readonly Dictionary<string, Action<object, object>> currentTypeSetters = 
+            TypeSettersTemplate.ToDictionary(kvp => kvp.Key, kvp => kvp.Value, StringComparer.InvariantCultureIgnoreCase);
 
         [JsonExtensionData]
         public Dictionary<string, object> ObjectPropertyValues { get; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);

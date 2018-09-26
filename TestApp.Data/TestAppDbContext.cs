@@ -1,9 +1,11 @@
 ﻿using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using TestApp.Data.Domain;
 using TestApp.Data.Entities;
-using TestApp.Data.Services;
+using TestApp.Data.Helpers;
 
 namespace TestApp.Data
 {
@@ -32,6 +34,7 @@ namespace TestApp.Data
             var entityBuilder = modelBuilder.Entity<Customer>();
             entityBuilder.HasKey(s => new { CustomerId = s.Id, s.Name });
             entityBuilder.HasAlternateKey(s => s.Id).HasName("IX_CustomerId");
+            MapCommonEntityColumns(entityBuilder);
 
             // why not just use Identity PK? in case this req is from mapping to existing legacy db, otherwise IMO it's not justified 
             // in most cases auto incremented BIGINT for PK is more then enough, other problems can be solved by enforcing computed columns etc 
@@ -62,11 +65,12 @@ namespace TestApp.Data
         {
             var entityBuilder = modelBuilder.Entity<Address>();
             entityBuilder.HasKey(s => new { s.CustomerId, s.AddressType });
+            MapCommonEntityColumns(entityBuilder);
             
             entityBuilder.HasDiscriminator(s => s.AddressType)
-                .HasValue<InvoiceAddress>("I")
-                .HasValue<DeliveryAddress>("D")
-                .HasValue<ServiceAddress>("S");
+                .HasValue<InvoiceAddress>(InvoiceAddress.TYPE)
+                .HasValue<DeliveryAddress>(DeliveryAddress.TYPE)
+                .HasValue<ServiceAddress>(ServiceAddress.TYPE);
             
             entityBuilder.Property(s => s.CustomerId).HasColumnType("varchar(5)").HasMaxLength(5);
             entityBuilder.Property(s => s.AddressType).HasColumnType("varchar(1)").HasMaxLength(1);
@@ -92,6 +96,12 @@ namespace TestApp.Data
                 .Select(customerEntry => customerEntry.Properties.FirstOrDefault(s => s.Metadata.Name == nameof(Customer.Id)));
 
             foreach (var propertyEntry in udfBasedComputedColumns.Where(s => s != null)) propertyEntry.IsTemporary = true;
+        }
+
+        private static void MapCommonEntityColumns<T>(EntityTypeBuilder<T> entityBuilder) where T : class, IEntity
+        {
+            entityBuilder.Property(s => s.CreatedBy).IsRequired();
+            entityBuilder.Property(s => s.UpdatedBy).IsRequired();
         }
     }
 }

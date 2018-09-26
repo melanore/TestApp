@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
+using TestApp.Data.Domain;
 
 namespace TestApp.Data.Entities
 {
-    public class Customer
+    public class Customer : IEntity
     {
         public string Id { get; private set; }
         
@@ -13,5 +15,11 @@ namespace TestApp.Data.Entities
         public string Country { get; set; }
         
         public List<Address> Addresses { get; set; }
+        
+        public DateTime CreatedDateTime { get; set; }
+        public string CreatedBy { get; set; }
+        public DateTime UpdatedDateTime { get; set; }
+        public string UpdatedBy { get; set; }
+        public int Version { get; set; }
     }
 }

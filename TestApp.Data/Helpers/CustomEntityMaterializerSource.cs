@@ -4,11 +4,12 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using TestApp.Core.Helpers;
+using TestApp.Core.Util;
 
-namespace TestApp.Data.Services
+namespace TestApp.Data.Helpers
 {
     // http://volosoft.com/datetime-specifykind-in-entity-framework-core-while-querying/
-    public class CustomEntityMaterializerSource : EntityMaterializerSource
+    internal class CustomEntityMaterializerSource : EntityMaterializerSource
     {
         private static readonly MethodInfo NormalizeMethod = typeof(DateTimeMapper).GetTypeInfo().GetMethod(nameof(DateTimeMapper.Normalize));
 
