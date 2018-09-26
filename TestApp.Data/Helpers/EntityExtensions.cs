@@ -11,7 +11,7 @@ namespace TestApp.Data.Helpers
             entity.CreatedDateTime = DateTime.UtcNow;
             FillStandardFieldsOnUpdating(entity, actorId);
         }
-        
+
         public static void FillStandardFieldsOnUpdating<T>(this T entity, string actorId) where T : IEntity
         {
             entity.UpdatedBy = actorId;

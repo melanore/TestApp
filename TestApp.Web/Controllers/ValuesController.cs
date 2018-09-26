@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TestApp.Data;
-using TestApp.Data.Entities;
 
 namespace TestApp.Web.Controllers
 {
@@ -15,14 +14,14 @@ namespace TestApp.Web.Controllers
         {
             DbContext = dbContext;
         }
-        
+
         private TestAppDbContext DbContext { get; }
-        
+
         /// <summary>
-        /// Returns foobar.
+        ///     Returns foobar.
         /// </summary>
         /// <remarks>
-        /// Here is a sample remarks placeholder.
+        ///     Here is a sample remarks placeholder.
         /// </remarks>
         /// <returns>foobar</returns>
         [HttpGet]

@@ -8,62 +8,62 @@ namespace TestApp.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "CreatedBy",
-                table: "Customers",
+                "CreatedBy",
+                "Customers",
                 nullable: false,
                 defaultValue: "");
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "CreatedDateTime",
-                table: "Customers",
+                "CreatedDateTime",
+                "Customers",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<string>(
-                name: "UpdatedBy",
-                table: "Customers",
+                "UpdatedBy",
+                "Customers",
                 nullable: false,
                 defaultValue: "");
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "UpdatedDateTime",
-                table: "Customers",
+                "UpdatedDateTime",
+                "Customers",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<int>(
-                name: "Version",
-                table: "Customers",
+                "Version",
+                "Customers",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<string>(
-                name: "CreatedBy",
-                table: "Addresses",
+                "CreatedBy",
+                "Addresses",
                 nullable: false,
                 defaultValue: "");
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "CreatedDateTime",
-                table: "Addresses",
+                "CreatedDateTime",
+                "Addresses",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<string>(
-                name: "UpdatedBy",
-                table: "Addresses",
+                "UpdatedBy",
+                "Addresses",
                 nullable: false,
                 defaultValue: "");
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "UpdatedDateTime",
-                table: "Addresses",
+                "UpdatedDateTime",
+                "Addresses",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<int>(
-                name: "Version",
-                table: "Addresses",
+                "Version",
+                "Addresses",
                 nullable: false,
                 defaultValue: 0);
         }
@@ -71,44 +71,44 @@ namespace TestApp.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "CreatedBy",
-                table: "Customers");
+                "CreatedBy",
+                "Customers");
 
             migrationBuilder.DropColumn(
-                name: "CreatedDateTime",
-                table: "Customers");
+                "CreatedDateTime",
+                "Customers");
 
             migrationBuilder.DropColumn(
-                name: "UpdatedBy",
-                table: "Customers");
+                "UpdatedBy",
+                "Customers");
 
             migrationBuilder.DropColumn(
-                name: "UpdatedDateTime",
-                table: "Customers");
+                "UpdatedDateTime",
+                "Customers");
 
             migrationBuilder.DropColumn(
-                name: "Version",
-                table: "Customers");
+                "Version",
+                "Customers");
 
             migrationBuilder.DropColumn(
-                name: "CreatedBy",
-                table: "Addresses");
+                "CreatedBy",
+                "Addresses");
 
             migrationBuilder.DropColumn(
-                name: "CreatedDateTime",
-                table: "Addresses");
+                "CreatedDateTime",
+                "Addresses");
 
             migrationBuilder.DropColumn(
-                name: "UpdatedBy",
-                table: "Addresses");
+                "UpdatedBy",
+                "Addresses");
 
             migrationBuilder.DropColumn(
-                name: "UpdatedDateTime",
-                table: "Addresses");
+                "UpdatedDateTime",
+                "Addresses");
 
             migrationBuilder.DropColumn(
-                name: "Version",
-                table: "Addresses");
+                "Version",
+                "Addresses");
         }
     }
 }

@@ -18,7 +18,7 @@ namespace TestApp.Core.Helpers
         public int PageIndex { get; }
         public int TotalItemCount { get; }
         public int TotalPageCount { get; }
-        
+
         public List<T> Items { get; }
     }
 }

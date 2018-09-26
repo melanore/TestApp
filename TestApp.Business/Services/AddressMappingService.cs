@@ -3,7 +3,6 @@ using TestApp.Business.Domain;
 using TestApp.Core.Helpers;
 using TestApp.Data.Entities;
 using TestApp.Data.Services;
-
 using AddressDto = TestApp.Business.Domain.Address;
 using AddressEntity = TestApp.Data.Entities.Address;
 
@@ -16,7 +15,7 @@ namespace TestApp.Business.Services
             var delta = new Delta<AddressEntity>();
             var addressType = MapAddressType(seed.GetValue(s => s.AddressType));
             delta.SetValue(s => s.AddressType, addressType);
-            
+
             if (seed.TryGetValue(s => s.Name, out var name)) delta.SetValue(s => s.Name, name);
             if (seed.TryGetValue(s => s.Street, out var street)) delta.SetValue(s => s.Street, street);
             if (seed.TryGetValue(s => s.Zip, out var zip)) delta.SetValue(s => s.Zip, zip);
@@ -25,15 +24,18 @@ namespace TestApp.Business.Services
             return delta;
         }
 
-        public AddressDto Map(AddressEntity entity) => new AddressDto
+        public AddressDto Map(AddressEntity entity)
         {
-            AddressType = MapAddressType(entity.AddressType),
-            Name = entity.Name,
-            Street = entity.Street,
-            Zip = entity.Zip,
-            City = entity.City,
-            Country = entity.Country
-        };
+            return new AddressDto
+            {
+                AddressType = MapAddressType(entity.AddressType),
+                Name = entity.Name,
+                Street = entity.Street,
+                Zip = entity.Zip,
+                City = entity.City,
+                Country = entity.Country
+            };
+        }
 
         private static string MapAddressType(AddressType addressType)
         {
@@ -45,7 +47,7 @@ namespace TestApp.Business.Services
                 default: throw new NotSupportedException($"Address type {addressType} is not supported.");
             }
         }
-        
+
         private static AddressType MapAddressType(string addressType)
         {
             switch (addressType)

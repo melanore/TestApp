@@ -6,10 +6,10 @@ namespace TestApp.Data.Domain
     {
         DateTime CreatedDateTime { get; set; }
         string CreatedBy { get; set; }
-        
+
         DateTime UpdatedDateTime { get; set; }
         string UpdatedBy { get; set; }
-        
+
         int Version { get; set; }
     }
 }

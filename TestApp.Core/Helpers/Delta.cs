@@ -9,11 +9,11 @@ namespace TestApp.Core.Helpers
 {
     public class Delta<T> where T : new()
     {
-        private static readonly Dictionary<string, Action<object, object>> TypeSettersTemplate = 
+        private static readonly Dictionary<string, Action<object, object>> TypeSettersTemplate =
             (typeof(T).GetProperties() ?? Enumerable.Empty<PropertyInfo>())
             .ToDictionary<PropertyInfo, string, Action<object, object>>(property => property.Name, property => property.SetValue);
 
-        private readonly Dictionary<string, Action<object, object>> currentTypeSetters = 
+        private readonly Dictionary<string, Action<object, object>> currentTypeSetters =
             TypeSettersTemplate.ToDictionary(kvp => kvp.Key, kvp => kvp.Value, StringComparer.InvariantCultureIgnoreCase);
 
         [JsonExtensionData]
@@ -96,14 +96,11 @@ namespace TestApp.Core.Helpers
                 .Select(s => new {s.OriginalValue, s.Value, DefaultValue = GetDefault(s.Value)})
                 .Aggregate(default(State), (state, propertyData) => state | (
                                                                         Equals(propertyData.Value, propertyData.DefaultValue) || propertyData.Value == null
-                                                                            ?
-                                                                            State.HasDeletion
-                                                                            :
-                                                                            Equals(propertyData.OriginalValue, propertyData.DefaultValue) ||
-                                                                            propertyData.OriginalValue == null
+                                                                            ? State.HasDeletion
+                                                                            : Equals(propertyData.OriginalValue, propertyData.DefaultValue) ||
+                                                                              propertyData.OriginalValue == null
                                                                                 ? State.HasAddition
-                                                                                :
-                                                                                State.HasUpdate));
+                                                                                : State.HasUpdate));
         }
 
         private static object GetDefault(object obj)

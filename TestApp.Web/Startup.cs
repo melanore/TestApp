@@ -14,6 +14,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using StackExchange.Profiling.SqlFormatters;
 using StackExchange.Profiling.Storage;
 using Swashbuckle.AspNetCore.Swagger;
 using TestApp.Core.Configuration;
@@ -59,7 +60,7 @@ namespace TestApp.Web
 
             services.Configure<BasicAuthenticationConfiguration>(Configuration.GetSection("BasicAuthenticationConfiguration"));
             services.AddAuthentication(BasicAuthenticationDefaults.AuthenticationScheme).AddBasicAuthentication<BasicAuthenticationVerifier>();
-            
+
             if (Environment.IsDevelopment())
             {
                 services.AddMiniProfiler(options =>
@@ -71,21 +72,21 @@ namespace TestApp.Web
 
                     // (Optional) Control storage
                     // (default is 30 minutes in MemoryCacheStorage)
-                    ((MemoryCacheStorage)options.Storage).CacheDuration = TimeSpan.FromMinutes(60);
+                    ((MemoryCacheStorage) options.Storage).CacheDuration = TimeSpan.FromMinutes(60);
 
                     // (Optional) Control which SQL formatter to use, InlineFormatter is the default
-                    options.SqlFormatter = new StackExchange.Profiling.SqlFormatters.InlineFormatter();
+                    options.SqlFormatter = new InlineFormatter();
 
                     // (Optional) You can disable "Connection Open()", "Connection Close()" (and async variant) tracking.
                     // (defaults to true, and connection opening/closing is tracked)
                     options.TrackConnectionOpenClose = true;
                 }).AddEntityFramework();
-                
+
                 services.AddSwaggerGen(c =>
                 {
                     c.SwaggerDoc("v1", new Info
                     {
-                        Title = "Test app api explorer", 
+                        Title = "Test app api explorer",
                         Version = "v1",
                         Description = "A simple ASP.NET Core Web API app",
                         TermsOfService = "None",
@@ -96,7 +97,7 @@ namespace TestApp.Web
                             Url = "https://github.com/melanore"
                         }
                     });
-                    
+
                     c.AddSecurityDefinition("basic", new BasicAuthScheme
                     {
                         Type = "basic",
@@ -104,7 +105,7 @@ namespace TestApp.Web
                     });
                     c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>>
                     {
-                        { "basic", new string[] { } }
+                        {"basic", new string[] { }}
                     });
                 });
             }
@@ -115,7 +116,7 @@ namespace TestApp.Web
             var auth = app.ApplicationServices.GetRequiredService<IOptions<BasicAuthenticationConfiguration>>().Value;
             if (string.IsNullOrEmpty(auth.Username) || string.IsNullOrEmpty(auth.Password) || string.IsNullOrEmpty(auth.ScopeName))
                 throw new NotSupportedException("Please provide BasicAuthenticationConfiguration in appsettings.");
-            
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

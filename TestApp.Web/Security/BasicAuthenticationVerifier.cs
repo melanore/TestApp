@@ -13,10 +13,10 @@ namespace TestApp.Web.Security
             BasicAuthenticationConfiguration = basicAuthenticationConfiguration;
             Logger = logger;
         }
-        
+
         private IOptions<BasicAuthenticationConfiguration> BasicAuthenticationConfiguration { get; }
         private ILogger<BasicAuthenticationVerifier> Logger { get; }
-        
+
         public Task<bool> Authenticate(string username, string password)
         {
             var result = username == BasicAuthenticationConfiguration.Value.Username && password == BasicAuthenticationConfiguration.Value.Password;

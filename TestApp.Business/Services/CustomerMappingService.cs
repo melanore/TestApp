@@ -2,7 +2,6 @@ using System.Linq;
 using TestApp.Core.Helpers;
 using TestApp.Data.Entities;
 using TestApp.Data.Services;
-
 using AddressDto = TestApp.Business.Domain.Address;
 using AddressEntity = TestApp.Data.Entities.Address;
 using CustomerDto = TestApp.Business.Domain.Customer;
@@ -16,9 +15,9 @@ namespace TestApp.Business.Services
         {
             AddressMappingService = addressMappingService;
         }
-        
+
         private IEntityMappingService<AddressDto, AddressEntity> AddressMappingService { get; }
-        
+
         public Delta<CustomerEntity> Map(Delta<CustomerDto> seed)
         {
             var delta = new Delta<CustomerEntity>();
@@ -37,14 +36,14 @@ namespace TestApp.Business.Services
             {
                 var invoiceAddress = entity.Addresses?.OfType<InvoiceAddress>().FirstOrDefault();
                 if (invoiceAddress != null) customer.InvoiceAddress = AddressMappingService.Map(invoiceAddress);
-                
+
                 var deliveryAddress = entity.Addresses?.OfType<DeliveryAddress>().FirstOrDefault();
                 if (deliveryAddress != null) customer.DeliveryAddress = AddressMappingService.Map(deliveryAddress);
-                
+
                 var serviceAddress = entity.Addresses?.OfType<ServiceAddress>().FirstOrDefault();
                 if (serviceAddress != null) customer.ServiceAddress = AddressMappingService.Map(serviceAddress);
             }
-            
+
             customer.Name = entity.Name;
             customer.Street = entity.Street;
             customer.Zip = entity.Zip;

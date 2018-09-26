@@ -2,7 +2,7 @@ using TestApp.Data.Domain;
 
 namespace TestApp.Business.Domain
 {
-    public class Address : IDomainObject<Data.Entities.Address> 
+    public class Address : IDomainObject<Data.Entities.Address>
     {
         public string Name { get; set; }
         public string Street { get; set; }

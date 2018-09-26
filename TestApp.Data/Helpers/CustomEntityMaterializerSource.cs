@@ -3,7 +3,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using TestApp.Core.Helpers;
 using TestApp.Core.Util;
 
 namespace TestApp.Data.Helpers

@@ -10,7 +10,7 @@ namespace TestApp.Business.Domain
         public string Zip { get; set; }
         public string City { get; set; }
         public string Country { get; set; }
-        
+
         public Address InvoiceAddress { get; set; }
         public Address DeliveryAddress { get; set; }
         public Address ServiceAddress { get; set; }
