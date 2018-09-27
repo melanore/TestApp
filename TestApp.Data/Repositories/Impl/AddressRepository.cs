@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -17,39 +18,50 @@ namespace TestApp.Data.Repositories.Impl
 
         private TestAppDbContext DbContext { get; }
 
+        public async Task<bool> ExistsByCustomerIdAsync<T>(string customerId) where T : Address, new()
+        {
+            return await DbContext.Addresses.AsNoTracking().OfType<T>().AnyAsync(s => s.CustomerId == customerId);
+        }
+        
         public async Task<T> GetByCustomerIdAsync<T>(string customerId) where T : Address, new()
         {
             return await DbContext.Addresses.AsNoTracking().OfType<T>().SingleOrDefaultAsync(s => s.CustomerId == customerId);
         }
 
-        public async Task<PagedResource<Address>> Get<T>(T query) where T : ResourceQuery, new()
+        public async Task<(List<Address> results, int totalCount)> Get(AddressQuery query)
         {
-            if (query == null) query = new T();
-            var customersQuery = DbContext.Addresses.AsNoTracking();
+            if (query == null) query = new AddressQuery();
+            var addressQuery = DbContext.Addresses.AsNoTracking();
 
-            var totalCount = customersQuery.Count();
+            var totalCount = addressQuery.Count();
 
-            customersQuery = customersQuery.Skip(query.PageSize * query.PageIndex).Take(query.PageSize);
-            if (query is OrderedAddressQuery orderedQueryFilter) customersQuery = OrderQueryByOrderKeyAndDirection(customersQuery, orderedQueryFilter);
-            var results = await customersQuery.ToListAsync();
-            return new PagedResource<Address>(results, totalCount, query);
+            addressQuery = addressQuery.Skip(query.PageSize * query.PageIndex).Take(query.PageSize);
+      
+            if (!string.IsNullOrEmpty(query.CustomerId)) addressQuery = addressQuery.Where(s => s.CustomerId == query.CustomerId);
+            addressQuery = OrderQueryByOrderKeyAndDirection(addressQuery, query);
+
+            var results = await addressQuery.ToListAsync();
+            return (results, totalCount);
         }
 
-        public void Create(Delta<Address> delta, string systemUserId)
+        public Address Create(Delta<Address> delta, string systemUserId)
         {
             delta.AddFilter(s => s.Customer);
-            var customer = delta.ToObject();
-            customer.FillStandardFieldsOnCreation(systemUserId);
-            DbContext.Addresses.Add(customer);
+            var address = delta.ToObject();
+            address.FillStandardFieldsOnCreation(systemUserId);
+            DbContext.Addresses.Add(address);
+            return address;
         }
 
-        public void Update(Delta<Address> delta, Address entity, string systemUserId)
+        public Address Update(Delta<Address> delta, Address entity, string systemUserId)
         {
             delta.AddFilter(s => s.Customer);
-            if (!delta.GetState(entity).HasValue) return;
+            delta.AddFilter(s => s.CustomerId);
+            if (!delta.GetState(entity).HasValue) return entity;
             delta.Apply(entity);
             entity.FillStandardFieldsOnUpdating(systemUserId);
             DbContext.Addresses.Update(entity);
+            return entity;
         }
 
         public void Delete(Address entity)
@@ -57,7 +69,7 @@ namespace TestApp.Data.Repositories.Impl
             DbContext.Addresses.Remove(entity);
         }
 
-        private static IQueryable<Address> OrderQueryByOrderKeyAndDirection(IQueryable<Address> addressQuery, OrderedAddressQuery query)
+        private static IQueryable<Address> OrderQueryByOrderKeyAndDirection(IQueryable<Address> addressQuery, AddressQuery query)
         {
             switch (query.SortBy)
             {

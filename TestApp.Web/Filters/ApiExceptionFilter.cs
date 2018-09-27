@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -46,36 +47,26 @@ namespace TestApp.Web.Filters
 
             private (HttpStatusCode, ApiError) HandleErrorResponse(ExceptionContext context)
             {
-                const string serverError = "A server error occurred.";
+                var serverError = $"A server error <{Guid.NewGuid()}> occurred.";
                 const string unauthorizedAccess = "Unauthorized Access";
 
-                var apiError = new ApiError(context.Exception?.GetBaseException()?.Message ?? context.Exception?.Message, context.Exception?.StackTrace);
-                Logger.LogError($"{serverError}.\nEx: {apiError.Message}.\nTrace: {apiError.Detail}.");
+                var apiError = new ApiError(context.Exception?.GetBaseException()?.Message ?? context.Exception?.Message, IsVerbose ? context.Exception?.StackTrace : default);
+                
+                Logger.LogError($"{serverError}\nEx: {apiError.Message}.\nTrace: {apiError.Details}.");
                 switch (context.Exception)
                 {
                     case UnauthorizedAccessException _:
                         Logger.LogWarning($"{unauthorizedAccess}. Ip address: {{{context.HttpContext?.Connection?.RemoteIpAddress}}}");
-                        return (HttpStatusCode.Unauthorized, new ApiError(unauthorizedAccess));
+                        return (HttpStatusCode.Unauthorized, new ApiError(unauthorizedAccess, default));
                     case ApiException ex:
-                        return (ex.StatusCode, IsVerbose ? apiError : new ApiError(ex.Message));
+                        ex.Details?.ForEach(apiError.Details.Add);
+                        return (ex.StatusCode, apiError);
                     case NotImplementedException _:
-                        return (HttpStatusCode.NotImplemented, IsVerbose ? apiError : new ApiError(serverError));
+                        return (HttpStatusCode.NotImplemented, apiError);
                     default:
-                        return (HttpStatusCode.InternalServerError, IsVerbose ? apiError : new ApiError(serverError));
+                        return (HttpStatusCode.InternalServerError, apiError);
                 }
             }
-        }
-
-        private class ApiError
-        {
-            public ApiError(string message, string detail = null)
-            {
-                Message = message;
-                Detail = detail;
-            }
-
-            public string Message { get; }
-            public string Detail { get; }
         }
     }
 }

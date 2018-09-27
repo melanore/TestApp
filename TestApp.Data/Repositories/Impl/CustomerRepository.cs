@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -17,25 +18,27 @@ namespace TestApp.Data.Repositories.Impl
 
         private TestAppDbContext DbContext { get; }
 
-        public async Task<Customer> GetByIdAsync(string id)
+        public async Task<Customer> GetByIdAsync(string id, bool includeAddresses = false)
         {
-            return await DbContext.Customers.AsNoTracking().SingleOrDefaultAsync(s => s.Id == id);
+            var query = DbContext.Customers.AsNoTracking();
+            if (includeAddresses) query = query.Include(s => s.Addresses);
+            return await query.SingleOrDefaultAsync(s => s.Id == id);
         }
 
-        public async Task<PagedResource<Customer>> Get<T>(T query) where T : ResourceQuery, new()
+        public async Task<(List<Customer> results, int totalCount)> Get(CustomerQuery query)
         {
-            if (query == null) query = new T();
+            if (query == null) query = new CustomerQuery();
             var customersQuery = DbContext.Customers.AsNoTracking();
 
             var totalCount = customersQuery.Count();
 
             customersQuery = customersQuery.Skip(query.PageSize * query.PageIndex).Take(query.PageSize);
-            if (query is OrderedCustomerQuery orderedQueryFilter) customersQuery = OrderQueryByOrderKeyAndDirection(customersQuery, orderedQueryFilter);
+            customersQuery = OrderQueryByOrderKeyAndDirection(customersQuery, query);
             var results = await customersQuery.ToListAsync();
-            return new PagedResource<Customer>(results, totalCount, query);
+            return (results, totalCount);
         }
 
-        public void Create(Delta<Customer> delta, string systemUserId)
+        public Customer Create(Delta<Customer> delta, string systemUserId)
         {
             delta.AddFilter(s => s.Id);
             delta.AddFilter(s => s.Addresses);
@@ -43,26 +46,27 @@ namespace TestApp.Data.Repositories.Impl
             var customer = delta.ToObject();
             customer.FillStandardFieldsOnCreation(systemUserId);
             DbContext.Customers.Add(customer);
+            return customer;
         }
 
-        public void Update(Delta<Customer> delta, Customer entity, string systemUserId)
+        public Customer Update(Delta<Customer> delta, Customer customer, string systemUserId)
         {
             delta.AddFilter(s => s.Id);
             delta.AddFilter(s => s.Addresses);
 
-            if (!delta.GetState(entity).HasValue) return;
-            delta.Apply(entity);
-            entity.FillStandardFieldsOnUpdating(systemUserId);
-            DbContext.Customers.Update(entity);
+            if (!delta.GetState(customer).HasValue) return customer;
+            delta.Apply(customer);
+            customer.FillStandardFieldsOnUpdating(systemUserId);
+            DbContext.Customers.Update(customer);
+            return customer;
         }
 
         public void Delete(Customer entity)
         {
-            //addresses are configured to be removed as cascade on delete. otherwise - explicit here.
             DbContext.Customers.Remove(entity);
         }
 
-        private static IQueryable<Customer> OrderQueryByOrderKeyAndDirection(IQueryable<Customer> customersQuery, OrderedCustomerQuery query)
+        private static IQueryable<Customer> OrderQueryByOrderKeyAndDirection(IQueryable<Customer> customersQuery, CustomerQuery query)
         {
             switch (query.SortBy)
             {

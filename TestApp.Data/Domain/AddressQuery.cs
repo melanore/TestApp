@@ -2,8 +2,9 @@ using TestApp.Core.Helpers;
 
 namespace TestApp.Data.Domain
 {
-    public class OrderedAddressQuery : OrderedResourceQuery<AddressOrderKey>
+    public class AddressQuery : OrderedResourceQuery<AddressOrderKey>
     {
+        public string CustomerId { get; set; }
         public override AddressOrderKey? SortBy { get; set; }
     }
 

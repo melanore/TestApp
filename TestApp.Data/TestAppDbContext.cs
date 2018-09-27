@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -34,8 +37,15 @@ namespace TestApp.Data
         private static void MapCustomers(ModelBuilder modelBuilder)
         {
             var entityBuilder = modelBuilder.Entity<Customer>();
-            entityBuilder.HasKey(s => new {CustomerId = s.Id, s.Name});
-            entityBuilder.HasAlternateKey(s => s.Id).HasName("IX_CustomerId");
+            
+            // composite {name+id} PK could be defined, but in case name is changed - it will mess up with EF object identity, leading to unexpected behavior
+            //     on updates and changetracking internals
+            // by def - updates using EF will append predicate with pk definition in the end, assuming pk is immutable (and it must!)
+            // one way to workaround this is to modify migration file to pretend we dropped PK and changed it to {id} only for EF, - but that's dangerous workaround.
+            entityBuilder.HasKey(s => s.Id);
+            entityBuilder.Property(s => s.Name).IsRequired();
+            entityBuilder.HasIndex(s => s.Name).IsUnique(false);
+            
             MapCommonEntityColumns(entityBuilder);
 
             // why not just use Identity PK? in case this req is from mapping to existing legacy db, otherwise IMO it's not justified 
@@ -69,13 +79,13 @@ namespace TestApp.Data
             entityBuilder.HasKey(s => new {s.CustomerId, s.AddressType});
             MapCommonEntityColumns(entityBuilder);
 
-            entityBuilder.HasDiscriminator(s => s.AddressType)
+            entityBuilder.HasDiscriminator(s => s.AddressType).HasValue<Address>(string.Empty)
                 .HasValue<InvoiceAddress>(InvoiceAddress.TYPE)
                 .HasValue<DeliveryAddress>(DeliveryAddress.TYPE)
                 .HasValue<ServiceAddress>(ServiceAddress.TYPE);
 
             entityBuilder.Property(s => s.CustomerId).HasColumnType("varchar(5)").HasMaxLength(5);
-            entityBuilder.Property(s => s.AddressType).HasColumnType("varchar(1)").HasMaxLength(1);
+            entityBuilder.Property(s => s.AddressType).HasColumnType("varchar(1)").HasMaxLength(1).IsUnicode();
 
             entityBuilder.Property(s => s.Name).HasColumnType("nvarchar(100)").HasMaxLength(100);
             entityBuilder.Property(s => s.Street).HasColumnType("nvarchar(100)").HasMaxLength(100);
@@ -86,6 +96,12 @@ namespace TestApp.Data
             entityBuilder.HasOne(s => s.Customer).WithMany(s => s.Addresses).HasForeignKey(s => s.CustomerId).HasPrincipalKey(s => s.Id);
         }
 
+        public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        {
+            PurgeEfTempIdFromInsertStatement();
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+        
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
             PurgeEfTempIdFromInsertStatement();

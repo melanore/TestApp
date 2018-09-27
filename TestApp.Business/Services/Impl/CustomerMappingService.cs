@@ -7,7 +7,7 @@ using AddressEntity = TestApp.Data.Entities.Address;
 using CustomerDto = TestApp.Business.Domain.Customer;
 using CustomerEntity = TestApp.Data.Entities.Customer;
 
-namespace TestApp.Business.Services
+namespace TestApp.Business.Services.Impl
 {
     public class CustomerMappingService : IEntityMappingService<CustomerDto, CustomerEntity>
     {
@@ -25,7 +25,7 @@ namespace TestApp.Business.Services
             if (seed.TryGetValue(s => s.Street, out var street)) delta.SetValue(s => s.Street, street);
             if (seed.TryGetValue(s => s.Zip, out var zip)) delta.SetValue(s => s.Zip, zip);
             if (seed.TryGetValue(s => s.City, out var city)) delta.SetValue(s => s.City, city);
-            if (seed.TryGetValue(s => s.Country, out var country)) delta.SetValue(s => s.Name, country);
+            if (seed.TryGetValue(s => s.Country, out var country)) delta.SetValue(s => s.Country, country.ToLowerInvariant());
             return delta;
         }
 
@@ -44,6 +44,7 @@ namespace TestApp.Business.Services
                 if (serviceAddress != null) customer.ServiceAddress = AddressMappingService.Map(serviceAddress);
             }
 
+            customer.Id = entity.Id;
             customer.Name = entity.Name;
             customer.Street = entity.Street;
             customer.Zip = entity.Zip;

@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TestApp.Data;
 
 namespace TestApp.Data.Migrations
 {
     [DbContext(typeof(TestAppDbContext))]
-    partial class TestAppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180927155307_Customer_Change_PK")]
+    partial class Customer_Change_PK
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -27,8 +29,7 @@ namespace TestApp.Data.Migrations
 
                     b.Property<string>("AddressType")
                         .HasColumnType("varchar(1)")
-                        .HasMaxLength(1)
-                        .IsUnicode(true);
+                        .HasMaxLength(1);
 
                     b.Property<string>("City")
                         .HasColumnType("nvarchar(100)")
@@ -67,7 +68,7 @@ namespace TestApp.Data.Migrations
 
                     b.ToTable("Addresses");
 
-                    b.HasDiscriminator<string>("AddressType").HasValue("");
+                    b.HasDiscriminator<string>("AddressType").HasValue("Address");
                 });
 
             modelBuilder.Entity("TestApp.Data.Entities.Customer", b =>

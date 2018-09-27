@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Reflection;
 using Bazinga.AspNetCore.Authentication.Basic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -17,7 +18,9 @@ using Newtonsoft.Json.Serialization;
 using StackExchange.Profiling.SqlFormatters;
 using StackExchange.Profiling.Storage;
 using Swashbuckle.AspNetCore.Swagger;
+using TestApp.Business.Domain;
 using TestApp.Business.Services;
+using TestApp.Business.Services.Impl;
 using TestApp.Core.Configuration;
 using TestApp.Data;
 using TestApp.Data.Repositories;
@@ -25,10 +28,7 @@ using TestApp.Data.Repositories.Impl;
 using TestApp.Data.Services;
 using TestApp.Web.Filters;
 using TestApp.Web.Security;
-
-using AddressDto = TestApp.Business.Domain.Address;
 using AddressEntity = TestApp.Data.Entities.Address;
-using CustomerDto = TestApp.Business.Domain.Customer;
 using CustomerEntity = TestApp.Data.Entities.Customer;
 
 namespace TestApp.Web
@@ -58,7 +58,7 @@ namespace TestApp.Web
                 .AddJsonOptions(options =>
                 {
                     options.SerializerSettings.Formatting = Formatting.None;
-                    options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
+                    options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                     options.SerializerSettings.MissingMemberHandling = MissingMemberHandling.Ignore;
                     options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                     options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
@@ -70,11 +70,7 @@ namespace TestApp.Web
             services.Configure<BasicAuthenticationConfiguration>(Configuration.GetSection("BasicAuthenticationConfiguration"));
             services.AddAuthentication(BasicAuthenticationDefaults.AuthenticationScheme).AddBasicAuthentication<BasicAuthenticationVerifier>();
 
-            services.AddTransient<IEntityMappingService<AddressDto, AddressEntity>, AddressMappingService>();
-            services.AddTransient<IEntityMappingService<CustomerDto, CustomerEntity>, CustomerMappingService>();
-            services.AddTransient<IAddressRepository, AddressRepository>();
-            services.AddTransient<ICustomerRepository, CustomerRepository>();
-            services.AddTransient<ITestAppUnitOfWork, TestAppUnitOfWork>();
+            RegisterServices(services);
 
             if (Environment.IsDevelopment())
             {
@@ -103,7 +99,7 @@ namespace TestApp.Web
                     {
                         Title = "Test app api explorer",
                         Version = "v1",
-                        Description = "A simple ASP.NET Core Web API app",
+                        Description = "Profiling endpoints available at /profiler/results route.",
                         TermsOfService = "None",
                         Contact = new Contact
                         {
@@ -122,8 +118,27 @@ namespace TestApp.Web
                     {
                         {"basic", new string[] { }}
                     });
+                    c.DescribeAllEnumsAsStrings();
+                    c.DescribeAllParametersInCamelCase();
+                    c.DescribeStringEnumsInCamelCase();
+                    c.DocumentFilter<SwaggerModelBinder>();
+                    
+                    c.IncludeXmlComments($@"{AppDomain.CurrentDomain.BaseDirectory}\{Assembly.GetExecutingAssembly().GetName().Name}.xml"); 
                 });
             }
+        }
+
+        private static void RegisterServices(IServiceCollection services)
+        {
+            services.AddTransient<IAddressRepository, AddressRepository>();
+            services.AddTransient<ICustomerRepository, CustomerRepository>();
+            services.AddTransient<ITestAppUnitOfWork, TestAppUnitOfWork>();
+            services.AddTransient<IEntityMappingService<Address, AddressEntity>, AddressMappingService>();
+            services.AddTransient<IEntityMappingService<Customer, CustomerEntity>, CustomerMappingService>();
+            services.AddTransient<IValidationService<Address, AddressEntity>, AddressValidationService>();
+            services.AddTransient<IValidationService<Customer, CustomerEntity>, CustomerValidationService>();
+            services.AddTransient<ICustomerService, CustomerService>();
+            services.AddTransient<IAddressService, AddressService>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

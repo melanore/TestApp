@@ -6,7 +6,7 @@ using TestApp.Data.Services;
 using AddressDto = TestApp.Business.Domain.Address;
 using AddressEntity = TestApp.Data.Entities.Address;
 
-namespace TestApp.Business.Services
+namespace TestApp.Business.Services.Impl
 {
     public class AddressMappingService : IEntityMappingService<AddressDto, AddressEntity>
     {
@@ -16,11 +16,12 @@ namespace TestApp.Business.Services
             var addressType = MapAddressType(seed.GetValue(s => s.AddressType));
             delta.SetValue(s => s.AddressType, addressType);
 
+            if (seed.TryGetValue(s => s.CustomerId, out var customerId)) delta.SetValue(s => s.CustomerId, customerId);
             if (seed.TryGetValue(s => s.Name, out var name)) delta.SetValue(s => s.Name, name);
             if (seed.TryGetValue(s => s.Street, out var street)) delta.SetValue(s => s.Street, street);
             if (seed.TryGetValue(s => s.Zip, out var zip)) delta.SetValue(s => s.Zip, zip);
             if (seed.TryGetValue(s => s.City, out var city)) delta.SetValue(s => s.City, city);
-            if (seed.TryGetValue(s => s.Country, out var country)) delta.SetValue(s => s.Name, country);
+            if (seed.TryGetValue(s => s.Country, out var country)) delta.SetValue(s => s.Country, country.ToLowerInvariant());
             return delta;
         }
 
@@ -28,6 +29,7 @@ namespace TestApp.Business.Services
         {
             return new AddressDto
             {
+                CustomerId = entity.CustomerId,
                 AddressType = MapAddressType(entity.AddressType),
                 Name = entity.Name,
                 Street = entity.Street,
@@ -37,7 +39,7 @@ namespace TestApp.Business.Services
             };
         }
 
-        private static string MapAddressType(AddressType addressType)
+        private static string MapAddressType(AddressType? addressType)
         {
             switch (addressType)
             {
