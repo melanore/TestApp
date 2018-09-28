@@ -36,7 +36,7 @@ More on topic
 
 ### Unit test
 
-Unit testing and % of sln test coverage doesn't guarantee good bullet proof tested project. If you have business rules to enforce - better way IMO is to enforce given rules by compiler and language itself. This is where F# shines in .NET - it will provide much more strongly typing with rules encoded into types used in code. Rule engines written in strongly type functional language + DDD provide, and property based testing provide much safer codebase. https://fsharpforfunandprofit.com/posts/property-based-testing/
+Unit testing and % of sln test coverage doesn't guarantee good bullet proof tested project. If you have business rules to enforce - better way IMO is to enforce given rules by compiler and language itself. This is where F# shines in .NET - it will provide much more strongly typing with rules encoded into types used in code. Rule engines written in strongly typed functional language + DDD and property based testing provide much safer codebase then unit testing of object oriented architecture. https://fsharpforfunandprofit.com/posts/property-based-testing/
 
 Also, integration tests with test data, that reflects real test case input, covering solution artefacts are giving much more benefits then mocking. Typically, I would go for parallel integration tests around web layer, with json|xml test data files, and database snapshots for fast test setup/cleanup.
 - https://blog.johnnyreilly.com/2016/09/integration-tests-with-sql-server.html
