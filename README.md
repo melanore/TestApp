@@ -23,7 +23,6 @@ More on topic
 
 Repository and Uow pattern came from  desktop world, and was ment do abstract out EF code from business logic, and allow testability. The reality is - repositories, especially generic repositories are bad practice in web. 
 
-- LINQ is code and data, comming from functional background. Maps, groups, filters and reducers are same as loops, conditional statements and other primitives. You are not trying to hide usage of for loop behind another abstraction, right?
 - DbContext is **already** implementing repository+uow pattern, and having abstraction over abstraction on abstraction is just overcomplication.
 - Uow is statefull pattern, - state in web is a bad practice. Modular composition should be achieved by small reuseable pieces of logic, I'm totally into stateless services (aka functions) for handling business domain rules, processing and persisting data.
 - If project is using EF, - it's typically better to let DbContext spread in DAL service layer. Also for simple or performance critical sections - there is literally zero benefit to using EF instead of Dapper or another micro ORM. Right DbContext usage for persisting can be also enforced by service separator injection into ioc, that will track SaveChanges calls, and not allow different service layers during single request call SaveChanges at same time.
