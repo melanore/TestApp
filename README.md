@@ -2,8 +2,8 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/wmhcb73l4er38iyk?svg=true)](https://ci.appveyor.com/project/melanore/testapp)
 
-[Swagger UI for api explorer and docs](https://[env]/index.html)
-[Swagger UI for api explorer and docs](https://[env]/profiler/results)
+  - [Swagger UI for api explorer and docs](https://[env]/index.html)
+  - [StackExchange profiler for endpoints](https://[env]/profiler/results)
 
 Test app implementation of rest api on aspnet core. I have several concerns about architecture.
 
@@ -21,7 +21,7 @@ More on topic
 
 ### Repository+Uow pattern
 
-Repository and Uow pattern came from  desktop world, and was ment do abstract out EF code from business logic, and allow testability. The reality is - repositories, especially generic repositories are bad practice in web. 
+Repository and Uow pattern came from  desktop world, and was ment to abstract out EF code from business logic, and allow testability. The reality is - repositories, especially generic repositories are bad practice in web. 
 
 - DbContext is **already** implementing repository+uow pattern, and having abstraction over abstraction on abstraction is just overcomplication.
 - Uow is statefull pattern, - state in web is a bad practice. Modular composition should be achieved by small reuseable pieces of logic, I'm totally into stateless services (aka functions) for handling business domain rules, processing and persisting data.
