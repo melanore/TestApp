@@ -6,11 +6,13 @@ using SoftwareApproach.TestingExtensions;
 using TestApp.Business.Services;
 using TestApp.Business.Services.Impl;
 using TestApp.Core.Exceptions;
+using TestApp.Core.Helpers;
 using TestApp.Data.Domain;
 using TestApp.Data.Entities;
 using TestApp.Data.Repositories;
 using TestApp.Data.Services;
-using Address = TestApp.Data.Entities.Address;
+
+using AddressEntity = TestApp.Data.Entities.Address;
 using CustomerDto = TestApp.Business.Domain.Customer;
 using CustomerEntity = TestApp.Data.Entities.Customer;
 
@@ -38,7 +40,7 @@ namespace TestApp.Business.Tests
         }
         
         [TestMethod]
-        public async Task GetCustomersReturnsPagedCollectionOfCustomers()
+        public async Task GetCustomers_WithProperQuery_ReturnsPagedCollectionOfCustomers()
         {
             // Arrange
             const int totalCount = 1;
@@ -49,7 +51,7 @@ namespace TestApp.Business.Tests
                     Id = "123",
                     Name = "Test Name",
                     Country = "pl",
-                    Addresses = new List<Address>
+                    Addresses = new List<AddressEntity>
                     {
                         new ServiceAddress {Name = "default"}
                     }
@@ -80,7 +82,7 @@ namespace TestApp.Business.Tests
         }
         
         [TestMethod]
-        public async Task GetCustomerByIdReturnsProperCustomerFromRepo()
+        public async Task GetCustomerById_ReturnsProperCustomerFromRepo()
         {
             // Arrange
             var expected = new CustomerEntity 
@@ -88,7 +90,7 @@ namespace TestApp.Business.Tests
                 Id = "123", 
                 Name = "Test Name", 
                 Country = "pl", 
-                Addresses = new List<Address>
+                Addresses = new List<AddressEntity>
                 {
                     new ServiceAddress { Name = "default" }
                 } 
@@ -114,7 +116,7 @@ namespace TestApp.Business.Tests
         }
         
         [TestMethod]
-        public async Task GetCustomerByInvalidIdThrowsNotFoundException()
+        public async Task GetCustomerById_IfNotExists_ThrowsNotFoundException()
         {
             // Arrange
             const string missingUserId = "someId";
@@ -127,6 +129,109 @@ namespace TestApp.Business.Tests
             A.CallTo(() => UowStub.CustomerRepository.GetByIdAsync(missingUserId, true)).MustHaveHappenedOnceExactly();
             A.CallTo(() => UowStub.SaveAsync()).MustNotHaveHappened();
             A.CallTo(() => ValidationStub.Validate(A<CustomerDto>._)).MustNotHaveHappened();
+        }
+        
+        [TestMethod]
+        public async Task Create_ValidCustomer_Succeed()
+        {
+            // Arrange
+            var delta = A.Fake<Delta<CustomerDto>>();
+
+            // Act
+            await UnitUnderTest.CreateCustomerAsync(delta, FAKE_SYSTEM_USER_ID);
+            
+            //Assert
+            A.CallTo(() => UowStub.CustomerRepository.Create(A<Delta<CustomerEntity>>._, FAKE_SYSTEM_USER_ID)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => UowStub.SaveAsync()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => ValidationStub.Validate(A<CustomerDto>._)).MustHaveHappenedOnceExactly();
+        }
+        
+        [TestMethod]
+        public async Task Create_InvalidCustomer_ThrowsValidationException()
+        {
+            // Arrange
+            var delta = A.Fake<Delta<CustomerDto>>();
+            A.CallTo(() => ValidationStub.Validate(A<CustomerDto>._)).Returns(new List<string> {"some error"});
+
+            // Act
+            await Assert.ThrowsExceptionAsync<ValidationException>(() => UnitUnderTest.CreateCustomerAsync(delta, FAKE_SYSTEM_USER_ID));
+            
+            //Assert
+            A.CallTo(() => UowStub.SaveAsync()).MustNotHaveHappened();
+            A.CallTo(() => ValidationStub.Validate(A<CustomerDto>._)).MustHaveHappenedOnceExactly();
+        }
+        
+        [TestMethod]
+        public async Task Update_ValidCustomer_Succeed()
+        {
+            // Arrange
+            const string customerId = "AA001";
+            var delta = A.Fake<Delta<CustomerDto>>();
+
+            // Act
+            await UnitUnderTest.UpdateCustomerAsync(customerId, delta, FAKE_SYSTEM_USER_ID);
+            
+            //Assert
+            A.CallTo(() => UowStub.CustomerRepository.Update(A<Delta<CustomerEntity>>._, A<CustomerEntity>._, FAKE_SYSTEM_USER_ID))
+                .MustHaveHappenedOnceExactly();
+            
+            A.CallTo(() => UowStub.SaveAsync()).MustHaveHappenedOnceExactly();
+            A.CallTo(() => ValidationStub.Validate(A<CustomerDto>._)).MustHaveHappenedOnceExactly();
+        }
+        
+        [TestMethod]
+        public async Task Update_InvalidCustomer_ThrowsValidationException()
+        {
+            // Arrange
+            const string customerId = "AA001";
+            var delta = A.Fake<Delta<CustomerDto>>();
+            A.CallTo(() => ValidationStub.Validate(A<CustomerDto>._)).Returns(new List<string> {"some error"});
+
+            // Act
+            await Assert.ThrowsExceptionAsync<ValidationException>(() => UnitUnderTest.UpdateCustomerAsync(customerId, delta, FAKE_SYSTEM_USER_ID));
+            
+            //Assert
+            A.CallTo(() => UowStub.SaveAsync()).MustNotHaveHappened();
+            A.CallTo(() => ValidationStub.Validate(A<CustomerDto>._)).MustHaveHappenedOnceExactly();
+        }
+        
+        [TestMethod]
+        public async Task Update_MissingCustomer_ThrowsNotFoundException()
+        {
+            // Arrange
+            const string missingCustomerId = "someId";
+            var delta = A.Fake<Delta<CustomerDto>>();
+            A.CallTo(() => UowStub.CustomerRepository.GetByIdAsync(missingCustomerId, false)).Returns(default(CustomerEntity));
+
+            // Act
+            await Assert.ThrowsExceptionAsync<NotFoundException>(() => UnitUnderTest.UpdateCustomerAsync(missingCustomerId, delta, FAKE_SYSTEM_USER_ID));
+            
+            //Assert
+            A.CallTo(() => UowStub.SaveAsync()).MustNotHaveHappened();
+        }
+        
+        [TestMethod]
+        public async Task Delete_Customer_Succeed()
+        {
+            // Act
+            await UnitUnderTest.DeleteCustomerAsync("someId", FAKE_SYSTEM_USER_ID);
+            
+            //Assert
+            A.CallTo(() => UowStub.SaveAsync()).MustHaveHappened();
+        }
+        
+        [TestMethod]
+        public async Task Delete_MissingCustomer_ThrowsNotFoundException()
+        {
+            // Arrange
+            const string missingCustomerId = "someId";
+            A.CallTo(() => UowStub.CustomerRepository.GetByIdAsync(missingCustomerId, false)).Returns(default(CustomerEntity));
+
+            // Act
+            await Assert.ThrowsExceptionAsync<NotFoundException>(() => UnitUnderTest.DeleteCustomerAsync(missingCustomerId, FAKE_SYSTEM_USER_ID));
+            
+            //Assert
+            A.CallTo(() => UowStub.SaveAsync()).MustNotHaveHappened();
         }
     }
 }
