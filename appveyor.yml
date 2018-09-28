@@ -1,0 +1,7 @@
+  version: version-placeholder-{build}-{branch}
+  configuration: Release
+  install:
+    - git submodule update --init --recursive          
+  build:
+        verbosity: minimal
+  image: Visual Studio 2017
