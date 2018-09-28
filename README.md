@@ -1,6 +1,6 @@
 # Rest api test app
 
-[![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
+[![Build status](https://ci.appveyor.com/api/projects/status/wmhcb73l4er38iyk?svg=true)](https://ci.appveyor.com/project/melanore/testapp)
 
 ``
 Swagger UI for api explorer and docs - https://[env]/index.html
