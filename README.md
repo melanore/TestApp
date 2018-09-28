@@ -2,8 +2,8 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/wmhcb73l4er38iyk?svg=true)](https://ci.appveyor.com/project/melanore/testapp)
 
-  - [Swagger UI for api explorer and docs](https://[env]/index.html)
-  - [StackExchange profiler for endpoints](https://[env]/profiler/results)
+  - Swagger UI for api explorer and docs - https://[env]/index.html
+  - StackExchange profiler for endpoints - https://[env]/profiler/results
 
 Test app implementation of rest api on aspnet core. I have several concerns about architecture.
 
