@@ -1,4 +1,0 @@
-  version: testapp-{build}-{branch}      
-  build:
-        verbosity: minimal
-  image: Visual Studio 2017
