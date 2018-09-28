@@ -2,14 +2,10 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/wmhcb73l4er38iyk?svg=true)](https://ci.appveyor.com/project/melanore/testapp)
 
-``
 Swagger UI for api explorer and docs - https://[env]/index.html
-``
-``
 StackExchange miniprofiler for endpoints - https://[env]/profiler/results
-``
 
-Test app implementing rest api on aspnet core. I have several concerns about architecture.
+Test app implementation of rest api on aspnet core. I have several concerns about architecture.
 
   - Customer PK constraint 
   - Repository+Uow pattern
